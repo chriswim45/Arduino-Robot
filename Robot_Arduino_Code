@@ -1,0 +1,181 @@
+// Motor PWM & DIR 
+#define MotorLi_PWM 10
+#define MotorLi_DIR 8
+#define MotorRe_PWM 11
+#define MotorRe_DIR 12
+
+// Taster 
+#define SignalInputRe2 5
+#define SignalInputRe1 4
+#define SignalInputLi2 3
+#define SignalInputLi1 2
+
+#define Sensor1r 7
+#define Sensor2r 6
+#define Sensor3r A0
+#define Sensor4r A1
+#define Sensor5l A2
+#define Sensor6l A3
+#define Sensor7l A4
+#define Sensor8l A5
+
+unsigned int State;
+
+  bool Licht1r;
+  bool Licht2r;
+  bool Licht3r;
+  bool Licht4r;
+  bool Licht5l;
+  bool Licht6l;
+  bool Licht7l;
+  bool Licht8l;
+
+void setup() {
+  // put your setup code here, to run once:
+pinMode(MotorLi_PWM, OUTPUT);
+pinMode(MotorLi_DIR, OUTPUT);
+pinMode(MotorRe_PWM, OUTPUT);
+pinMode(MotorRe_DIR, OUTPUT);
+
+pinMode(SignalInputRe2, INPUT);
+pinMode(SignalInputRe1, INPUT);
+pinMode(SignalInputLi2, INPUT);
+pinMode(SignalInputLi2, INPUT);
+
+Serial.begin(9600);
+pinMode(Sensor1r, INPUT_PULLUP);
+pinMode(Sensor2r, INPUT_PULLUP);
+pinMode(Sensor3r, INPUT_PULLUP);
+pinMode(Sensor4r, INPUT_PULLUP);
+pinMode(Sensor5l, INPUT_PULLUP);
+pinMode(Sensor6l, INPUT_PULLUP);
+pinMode(Sensor7l, INPUT_PULLUP);
+pinMode(Sensor8l, INPUT_PULLUP);
+
+
+State = 0;
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  // Taster Kontakte
+  bool Taster = 0;
+  Taster = digitalRead(SignalInputRe2);
+
+  bool Taster2 = 0;
+  Taster2 = digitalRead(SignalInputRe1);
+  //Serial.println(Taster2);
+
+  bool Taster3 = 0;
+  Taster3 = digitalRead(SignalInputLi2);
+
+  bool Taster4 = 0;
+  Taster4 = digitalRead(SignalInputLi1);
+ 
+
+int RechtsDIR = 1;
+int LinksDIR = 0;
+
+Infrarotsensor();
+
+  Serial.print("Zustand: "); Serial.print(State); Serial.print(" Sensorwert: "); Serial.println(Licht8l); 
+
+switch(State){
+  case 0:   // Init
+      State = 100;
+      break;
+  
+  case 100:  // Vorwärtsfahren
+      digitalWrite(MotorLi_DIR, HIGH);
+      digitalWrite(MotorRe_DIR, LOW);
+      analogWrite(MotorLi_PWM, 100);
+      analogWrite(MotorRe_PWM, 100);
+
+      if (Taster == LOW || Taster2 == LOW) State = 150;
+      if (Taster3 == LOW || Taster4 == LOW) State = 150;
+      if (Licht4r == HIGH && Licht5l == HIGH && Licht3r == LOW) State = 375;
+      if (Licht5l == HIGH && Licht6l == HIGH  && Licht7l == LOW) State = 325;
+      //if (Licht4r == LOW && Licht3r == LOW && Licht5l == HIGH) State = 375;
+      //if (Licht3r == HIGH && Licht2r == HIGH) State = 350;
+      //if (Licht7l == HIGH && Licht6l == HIGH) State = 300; 
+      //if (Licht6l == HIGH && Licht5l == HIGH) State = 325;   
+            
+      break;
+
+  case 150:  // Anhalten
+      digitalWrite(MotorLi_DIR, LOW);
+      digitalWrite(MotorRe_DIR, LOW);
+      analogWrite(MotorLi_PWM, 0);
+      analogWrite(MotorRe_PWM, 0);
+      delay(1000);
+      State = 200;
+
+      break;  
+
+  case 200: // Rückwärts 
+      digitalWrite(MotorLi_DIR, LOW);
+      digitalWrite(MotorRe_DIR, HIGH);
+      analogWrite(MotorLi_PWM, 50);
+      analogWrite(MotorRe_PWM, 50);
+      delay(2000); 
+      State = 350;
+      
+      break;
+
+  case 300: // Rechtsdrehen
+      digitalWrite(MotorLi_DIR, HIGH);
+      digitalWrite(MotorRe_DIR, HIGH);
+      analogWrite(MotorLi_PWM, 50);
+      analogWrite(MotorRe_PWM, 50);
+      delay(1000);      
+      //if (Licht4r == HIGH && Licht5l == HIGH)State = 100;    
+
+      break;
+
+    case 325: // Rechtsdrehen langsam
+      digitalWrite(MotorLi_DIR, HIGH);
+      digitalWrite(MotorRe_DIR, HIGH);
+      analogWrite(MotorLi_PWM, 25);
+      analogWrite(MotorRe_PWM, 25);
+      if (Licht4r == HIGH && Licht5l == HIGH)State = 100;
+
+      break;
+
+  case 350: // Linksdrehen
+      digitalWrite(MotorLi_DIR, LOW);
+      digitalWrite(MotorRe_DIR, LOW);
+      analogWrite(MotorLi_PWM, 50);
+      analogWrite(MotorRe_PWM, 50);
+      delay(1000);
+      //if (Licht4r == HIGH && Licht5l == HIGH)State = 100;
+      
+      break;   
+
+    case 375: // Linksdrehen langsam
+      digitalWrite(MotorLi_DIR, LOW);
+      digitalWrite(MotorRe_DIR, LOW);
+      analogWrite(MotorLi_PWM, 25);
+      analogWrite(MotorRe_PWM, 25);
+      if (Licht4r == HIGH && Licht5l == HIGH) State = 100;
+
+      break;   
+}
+
+
+}
+
+void Infrarotsensor () {
+  
+  Licht1r = digitalRead(Sensor1r);
+  Licht2r = digitalRead(Sensor2r);
+  Licht3r = digitalRead(Sensor3r);
+  Licht4r = digitalRead(Sensor4r);
+  Licht5l = digitalRead(Sensor5l);
+  Licht6l = digitalRead(Sensor6l);
+  Licht7l = digitalRead(Sensor7l);
+  Licht8l = digitalRead(Sensor8l);
+}
+
+  
+
+
